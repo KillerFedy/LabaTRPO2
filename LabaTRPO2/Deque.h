@@ -14,25 +14,42 @@ namespace fefu_laboratory_two {
         using reference = T&;
         using const_reference = const T&;
 
-        Allocator() noexcept;
+        Allocator() noexcept = default;
 
-        Allocator(const Allocator& other) noexcept;
+        Allocator(const Allocator& other) noexcept = default;
 
         template <class U>
-        Allocator(const Allocator<U>& other) noexcept;
+        Allocator(const Allocator<U>& other) noexcept = default;
 
-        ~Allocator();
+        ~Allocator() = default;
 
-        pointer allocate(size_type);
+        pointer allocate(size_type size)
+        {
+            return static_cast<T*>(::operator new(size * sizeof(T));
+        }
 
-        void deallocate(pointer p, size_type n) noexcept;
+        void deallocate(pointer p, size_type n) noexcept
+        {
+            ::operator delete(p, n);
+        }
 
         //[[nodiscard]] std::allocation_result<T*> allocate_at_least(
         // std::size_t n ); // TODO For extra points
     };
 
     template <typename ValueType>
+    class Node
+    {
+    public:
+        Node* next;
+        Node* prev;
+        ValueType value;
+    };
+
+
+    template <typename ValueType>
     class Deque_iterator {
+        Node<ValueType>* point;
     public:
         using iterator_category = std::random_access_iterator_tag;
         using value_type = ValueType;
@@ -40,54 +57,137 @@ namespace fefu_laboratory_two {
         using pointer = ValueType*;
         using reference = ValueType&;
 
-        Deque_iterator() noexcept;
+        Deque_iterator() noexcept = default;
 
-        Deque_iterator(const Deque_iterator& other) noexcept;
+        Deque_iterator(const Deque_iterator& other) noexcept : point(other.point)
+        { }
 
-        Deque_iterator& operator=(const Deque_iterator&);
+        Deque_iterator& operator=(const Deque_iterator& other)
+        {
+            delete this->point;
+            this->point = other.point;
+            return *this;
+        }
 
-        ~Deque_iterator();
+        ~Deque_iterator() = default;
 
         friend void swap(Deque_iterator<ValueType>&, Deque_iterator<ValueType>&);
 
-        friend bool operator==(const Deque_iterator<ValueType>&,
-            const Deque_iterator<ValueType>&);
-        friend bool operator!=(const Deque_iterator<ValueType>&,
-            const Deque_iterator<ValueType>&);
+        friend bool operator==(const Deque_iterator<ValueType>& a,
+            const Deque_iterator<ValueType>& b)
+        {
+            return a == b;
+        }
+        friend bool operator!=(const Deque_iterator<ValueType>& a,
+            const Deque_iterator<ValueType>& b)
+        {
+            return a != b;
+        }
 
-        reference operator*() const;
+        reference operator*() const
+        {
+            reference a = point->value;
+            return a;
+        }
         pointer operator->() const;
 
-        Deque_iterator& operator++();
-        Deque_iterator operator++(int);
+        Deque_iterator& operator++()
+        {
+            *this += 1;
+            return *this;
+        }
+        Deque_iterator operator++(int)
+        {
+            *this += 1;
+            return *this;
+        }
 
-        Deque_iterator& operator--();
-        Deque_iterator operator--(int);
+        Deque_iterator& operator--()
+        {
+            *this -= 1;
+            return *this;
+        }
+        Deque_iterator operator--(int)
+        {
+            *this -= 1;
+            return *this;
+        }
 
-        Deque_iterator operator+(const difference_type&) const;
-        Deque_iterator& operator+=(const difference_type&);
+        Deque_iterator operator+(const difference_type& t) const
+        {
+            Deque_iterator it(*this);
+            it += t;
+            return it;
+        }
+        Deque_iterator& operator+=(const difference_type& t)
+        {
+            int i = 0;
+            int b = static_cast<int>(t);
+            while (i < b)
+            {
+                this->point = this->point->next;
+                if (this->point == nullptr)
+                {
+                    break;
+                }
+                i++;
+            }
+            return *this;
+        }
 
-        Deque_iterator operator-(const difference_type&) const;
-        Deque_iterator& operator-=(const difference_type&);
+        Deque_iterator operator-(const difference_type& t) const
+        {
+            Deque_iterator it(*this);
+            it -= t;
+            return it;
+        }
+        Deque_iterator& operator-=(const difference_type& t)
+        {
+            int i = 0;
+            int b = static_cast<int>(t);
+            while (i < b)
+            {
+                this->point = this->point->prev;
+                if (this->point == nullptr)
+                {
+                    break;
+                }
+                i++;
+            }
+            return *this;
+        }
 
         difference_type operator-(const Deque_iterator&) const;
 
         reference operator[](const difference_type&);
 
-        friend bool operator<(const Deque_iterator<ValueType>&,
-            const Deque_iterator<ValueType>&);
-        friend bool operator<=(const Deque_iterator<ValueType>&,
-            const Deque_iterator<ValueType>&);
-        friend bool operator>(const Deque_iterator<ValueType>&,
-            const Deque_iterator<ValueType>&);
-        friend bool operator>=(const Deque_iterator<ValueType>&,
-            const Deque_iterator<ValueType>&);
+        friend bool operator<(const Deque_iterator<ValueType>& a,
+            const Deque_iterator<ValueType>& b)
+        {
+            return a < b;
+        }
+        friend bool operator<=(const Deque_iterator<ValueType>& a,
+            const Deque_iterator<ValueType>& b)
+        {
+            return a <= b;
+        }
+        friend bool operator>(const Deque_iterator<ValueType>& a,
+            const Deque_iterator<ValueType>& b)
+        {
+            return a > b;
+        }
+        friend bool operator>=(const Deque_iterator<ValueType>& a,
+            const Deque_iterator<ValueType>& b)
+        {
+            return a >= b;
+        }
         // operator<=> will be handy
     };
 
     template <typename ValueType>
     class Deque_const_iterator {
         // Shouldn't give non const references on value
+        const Node<ValueType>* point;
     public:
         using iterator_category = std::random_access_iterator_tag;
         using value_type = ValueType;
@@ -95,50 +195,138 @@ namespace fefu_laboratory_two {
         using pointer = const ValueType*;
         using reference = const ValueType&;
 
-        Deque_const_iterator() noexcept;
-        Deque_const_iterator(const Deque_const_iterator&) noexcept;
-        Deque_const_iterator(const Deque_iterator<ValueType>&) noexcept;
+        Deque_const_iterator() noexcept = default;
+        Deque_const_iterator(const Deque_const_iterator& other) noexcept : point(other.point)
+        { }
+        Deque_const_iterator(const Deque_iterator<ValueType>& other) noexcept : point(other.point)
+        { }
 
-        Deque_const_iterator& operator=(const Deque_const_iterator&);
-        Deque_const_iterator& operator=(const Deque_iterator<ValueType>&);
+        Deque_const_iterator& operator=(const Deque_const_iterator& other)
+        {
+            delete this->point;
+            this->point = other.point;
+            return *this;
+        }
+        Deque_const_iterator& operator=(const Deque_iterator<ValueType>& other)
+        {
+            delete this->point;
+            this->point = other.point;
+            return *this;
+        }
 
-        ~Deque_const_iterator();
+        ~Deque_const_iterator() = default;
 
         friend void swap(Deque_const_iterator<ValueType>&,
             Deque_const_iterator<ValueType>&);
 
-        friend bool operator==(const Deque_const_iterator<ValueType>&,
-            const Deque_const_iterator<ValueType>&);
-        friend bool operator!=(const Deque_const_iterator<ValueType>&,
-            const Deque_const_iterator<ValueType>&);
+        friend bool operator==(const Deque_const_iterator<ValueType>& a,
+            const Deque_const_iterator<ValueType>& b)
+        {
+            return a == b;
+        }
+        friend bool operator!=(const Deque_const_iterator<ValueType>& a,
+            const Deque_const_iterator<ValueType>& b)
+        {
+            return a != b;
+        }
 
-        reference operator*() const;
+        reference operator*() const
+        {
+            reference constValue = this->point;
+            return constValue;
+        }
         pointer operator->() const;
 
-        Deque_const_iterator& operator++();
-        Deque_const_iterator operator++(int);
+        Deque_const_iterator& operator++()
+        {
+            *this += 1;
+            return *this;
+        }
+        Deque_const_iterator operator++(int)
+        {
+            *this += 1;
+            return *this;
+        }
 
-        Deque_const_iterator& operator--();
-        Deque_const_iterator operator--(int);
+        Deque_const_iterator& operator--()
+        {
+            *this -= 1;
+            return *this;
+        }
+        Deque_const_iterator operator--(int)
+        {
+            *this -= 1;
+            return *this;
+        }
 
-        Deque_const_iterator operator+(const difference_type&) const;
-        Deque_const_iterator& operator+=(const difference_type&);
+        Deque_const_iterator operator+(const difference_type& t) const
+        {
+            Deque_const_iterator it(*this);
+            it += t;
+            return it;
+        }
+        Deque_const_iterator& operator+=(const difference_type& t)
+        {
+            int i = 0;
+            int b = static_cast<int>(t);
+            while (i < b)
+            {
+                this->point = this->point->next;
+                if (this->point == nullptr)
+                {
+                    break;
+                }
+                i++;
+            }
+            return *this;
+        }
 
-        Deque_const_iterator operator-(const difference_type&) const;
-        Deque_const_iterator& operator-=(const difference_type&);
+        Deque_const_iterator operator-(const difference_type& t) const
+        {
+            Deque_const_iterator it(*this);
+            it -= t;
+            return it;
+        }
+        Deque_const_iterator& operator-=(const difference_type& t)
+        {
+            int i = 0;
+            int b = static_cast<int>(t);
+            while (i < b)
+            {
+                this->point = this->point->prev;
+                if (this->point == nullptr)
+                {
+                    break;
+                }
+                i++;
+            }
+            return *this;
+        }
 
         difference_type operator-(const Deque_const_iterator&) const;
 
         reference operator[](const difference_type&);
 
-        friend bool operator<(const Deque_const_iterator<ValueType>&,
-            const Deque_const_iterator<ValueType>&);
-        friend bool operator<=(const Deque_const_iterator<ValueType>&,
-            const Deque_const_iterator<ValueType>&);
-        friend bool operator>(const Deque_const_iterator<ValueType>&,
-            const Deque_const_iterator<ValueType>&);
-        friend bool operator>=(const Deque_const_iterator<ValueType>&,
-            const Deque_const_iterator<ValueType>&);
+        friend bool operator<(const Deque_const_iterator<ValueType>& a,
+            const Deque_const_iterator<ValueType>& b)
+        {
+            return a < b;
+        }
+        friend bool operator<=(const Deque_const_iterator<ValueType>& a,
+            const Deque_const_iterator<ValueType>& b)
+        {
+            return a <= b;
+        }
+        friend bool operator>(const Deque_const_iterator<ValueType>& a,
+            const Deque_const_iterator<ValueType>& b)
+        {
+            return a > b;
+        }
+        friend bool operator>=(const Deque_const_iterator<ValueType>& a,
+            const Deque_const_iterator<ValueType>& b)
+        {
+            return a >= b;
+        }
         // operator<=> will be handy
     };
 
@@ -679,4 +867,6 @@ namespace fefu_laboratory_two {
     /// @return The number of erased elements.
     template <class T, class Alloc, class Pred>
     typename Deque<T, Alloc>::size_type erase_if(Deque<T, Alloc>& c, Pred pred);
+
 }  // namespace fefu_laboratory_two
+
