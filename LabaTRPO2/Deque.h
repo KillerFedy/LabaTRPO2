@@ -49,8 +49,8 @@ namespace fefu_laboratory_two {
 
     template <typename ValueType>
     class Deque_iterator {
-        Node<ValueType>* point;
     public:
+        Node<ValueType>* point;
         using iterator_category = std::random_access_iterator_tag;
         using value_type = ValueType;
         using difference_type = std::ptrdiff_t;
@@ -71,17 +71,26 @@ namespace fefu_laboratory_two {
 
         ~Deque_iterator() = default;
 
-        friend void swap(Deque_iterator<ValueType>&, Deque_iterator<ValueType>&);
+        friend void swap(Deque_iterator<ValueType>& a, Deque_iterator<ValueType>& b)
+        {
+            Node<ValueType>* point_a = a.point;
+            a.point = b.point;
+            b.point = point_a;
+        }
 
         friend bool operator==(const Deque_iterator<ValueType>& a,
             const Deque_iterator<ValueType>& b)
         {
-            return a == b;
+            if (a.point == b.point)
+            {
+                return true;
+            }
+            return false;
         }
         friend bool operator!=(const Deque_iterator<ValueType>& a,
             const Deque_iterator<ValueType>& b)
         {
-            return a != b;
+            return !(a == b);
         }
 
         reference operator*() const
@@ -159,27 +168,111 @@ namespace fefu_laboratory_two {
 
         difference_type operator-(const Deque_iterator&) const;
 
-        reference operator[](const difference_type&);
+        reference operator[](const difference_type& t)
+        {
+            int a = static_cast<int>(t);
+            for (int i = 0; i < a; i++)
+            {
+                if (a > 0)
+                {
+                    this->point = point->next;
+                }
+                else
+                {
+                    this->point = point->prev;
+                }
+                if (this->point == nullptr)
+                {
+                    break;
+                }
+            }
+        }
 
         friend bool operator<(const Deque_iterator<ValueType>& a,
             const Deque_iterator<ValueType>& b)
         {
-            return a < b;
+            Node<ValueType>* node = a.point;
+            if (node == b.point)
+            {
+                return false;
+            }
+            while (true)
+            {
+                node = node->next;
+                if (node == b.point)
+                {
+                    return true;
+                }
+                else if(node == nullptr)
+                {
+                    return false;
+                }
+            }
         }
         friend bool operator<=(const Deque_iterator<ValueType>& a,
             const Deque_iterator<ValueType>& b)
         {
-            return a <= b;
+            Node<ValueType>* node = a.point;
+            if (node == b.point)
+            {
+                return true;
+            }
+            while (true)
+            {
+                node = node->next;
+                if (node == b.point)
+                {
+                    return true;
+                }
+                else if (node == nullptr)
+                {
+                    return false;
+                }
+            }
         }
         friend bool operator>(const Deque_iterator<ValueType>& a,
             const Deque_iterator<ValueType>& b)
         {
-            return a > b;
+            bool h = false;
+            Node<ValueType>* node = b.point;
+            if (node == a.point)
+            {
+                return false;
+            }
+            while (!h)
+            {
+                node = node->next;
+                if (node == a.point)
+                {
+                    return true;
+                }
+                else if (node == nullptr)
+                {
+                    return false;
+                }
+            }
         }
         friend bool operator>=(const Deque_iterator<ValueType>& a,
             const Deque_iterator<ValueType>& b)
         {
-            return a >= b;
+            bool h = false;
+            Node<ValueType>* node = b.point;
+            if (node == a.point)
+            {
+                return true;
+            }
+            while (!h)
+            {
+                node = node->next;
+                if (node == a.point)
+                {
+                    return true;
+                }
+                else if (node == nullptr)
+                {
+                    return false;
+                }
+            }
         }
         // operator<=> will be handy
     };
@@ -187,8 +280,8 @@ namespace fefu_laboratory_two {
     template <typename ValueType>
     class Deque_const_iterator {
         // Shouldn't give non const references on value
-        const Node<ValueType>* point;
     public:
+        Node<ValueType>* const point;
         using iterator_category = std::random_access_iterator_tag;
         using value_type = ValueType;
         using difference_type = std::ptrdiff_t;
@@ -216,18 +309,23 @@ namespace fefu_laboratory_two {
 
         ~Deque_const_iterator() = default;
 
-        friend void swap(Deque_const_iterator<ValueType>&,
-            Deque_const_iterator<ValueType>&);
+        friend void swap(Deque_const_iterator<ValueType>& a,
+            Deque_const_iterator<ValueType>& b)
+        {
+            Node<ValueType>* const point_a = a.point;
+            a.point = b.point;
+            b.point = point_a;
+        }
 
         friend bool operator==(const Deque_const_iterator<ValueType>& a,
             const Deque_const_iterator<ValueType>& b)
         {
-            return a == b;
+            return a.point == b.point;
         }
         friend bool operator!=(const Deque_const_iterator<ValueType>& a,
             const Deque_const_iterator<ValueType>& b)
         {
-            return a != b;
+            return !(a == b);
         }
 
         reference operator*() const
@@ -303,29 +401,129 @@ namespace fefu_laboratory_two {
             return *this;
         }
 
-        difference_type operator-(const Deque_const_iterator&) const;
+        difference_type operator-(const Deque_const_iterator& t) const
+        {
+            int a = static_cast<int>(t);
+            for (int i = 0; i < a; i++)
+            {
+                if (a > 0)
+                {
+                    this->point = point->next;
+                }
+                else
+                {
+                    this->point = point->prev;
+                }
+                if (this->point == nullptr)
+                {
+                    break;
+                }
+            }
+        }
 
-        reference operator[](const difference_type&);
+        reference operator[](const difference_type& t)
+        {
+            int a = static_cast<int>(t);
+            for (int i = 0; i < a; i++)
+            {
+                if (a > 0)
+                {
+                    this->point = point->next;
+                }
+                else
+                {
+                    this->point = point->prev;
+                }
+                if (this->point == nullptr)
+                {
+                    break;
+                }
+            }
+        }
 
         friend bool operator<(const Deque_const_iterator<ValueType>& a,
             const Deque_const_iterator<ValueType>& b)
         {
-            return a < b;
+            Node<ValueType>* const node = a.point;
+            if (node == b.point)
+            {
+                return false;
+            }
+            while (true)
+            {
+                node = node->next;
+                if (node == b.point)
+                {
+                    return true;
+                }
+                else if (node == nullptr)
+                {
+                    return false;
+                }
+            }
         }
         friend bool operator<=(const Deque_const_iterator<ValueType>& a,
             const Deque_const_iterator<ValueType>& b)
         {
-            return a <= b;
+            Node<ValueType>* const node = a.point;
+            if (node == b.point)
+            {
+                return true;
+            }
+            while (true)
+            {
+                node = node->next;
+                if (node == b.point)
+                {
+                    return true;
+                }
+                else if (node == nullptr)
+                {
+                    return false;
+                }
+            }
         }
         friend bool operator>(const Deque_const_iterator<ValueType>& a,
             const Deque_const_iterator<ValueType>& b)
         {
-            return a > b;
+            Node<ValueType>* const node = b.point;
+            if (node == a.point)
+            {
+                return false;
+            }
+            while (true)
+            {
+                node = node->next;
+                if (node == a.point)
+                {
+                    return true;
+                }
+                else if (node == nullptr)
+                {
+                    return false;
+                }
+            }
         }
         friend bool operator>=(const Deque_const_iterator<ValueType>& a,
             const Deque_const_iterator<ValueType>& b)
         {
-            return a >= b;
+            Node<ValueType>* const node = b.point;
+            if (node == a.point)
+            {
+                return true;
+            }
+            while (true)
+            {
+                node = node->next;
+                if (node == a.point)
+                {
+                    return true;
+                }
+                else if (node == nullptr)
+                {
+                    return false;
+                }
+            }
         }
         // operator<=> will be handy
     };
@@ -435,24 +633,36 @@ namespace fefu_laboratory_two {
 
         /// @brief Default constructor. Constructs an empty container with a
         /// default-constructed allocator.
-        Deque();
+        Deque() = default;
 
         /// @brief Constructs an empty container with the given allocator
         /// @param alloc allocator to use for all memory allocations of this container
-        explicit Deque(const Allocator& alloc);
+        explicit Deque(const Allocator& alloc) : allocator(alloc), count_elements(0) { }
 
         /// @brief Constructs the container with count copies of elements with value
         /// and with the given allocator
         /// @param count the size of the container
         /// @param value the value to initialize elements of the container with
         /// @param alloc allocator to use for all memory allocations of this container
-        Deque(size_type count, const T& value, const Allocator& alloc = Allocator());
+        Deque(size_type count, const T& value, const Allocator& alloc = Allocator()) : count_elements(count), allocator(alloc)
+        {
+            for (int i = 0; i < static_cast<int>(count); i++)
+            {
+                push_back(value);
+            }
+        }
 
         /// @brief Constructs the container with count default-inserted instances of
         /// T. No copies are made.
         /// @param count the size of the container
         /// @param alloc allocator to use for all memory allocations of this container
-        explicit Deque(size_type count, const Allocator& alloc = Allocator());
+        explicit Deque(size_type count, const Allocator& alloc = Allocator()) : count_elements(count), allocator(alloc)
+        {
+            for (int i = 0; i < static_cast<int>(count); i++)
+            {
+                push_back(default(T));
+            }
+        }
 
         /// @brief Constructs the container with the contents of the range [first,
         /// last).
@@ -507,7 +717,7 @@ namespace fefu_laboratory_two {
         Deque(std::initializer_list<T> init, const Allocator& alloc = Allocator());
 
         /// @brief Destructs the deque.
-        ~Deque();
+        ~Deque() = default;
 
         /// @brief Copy assignment operator. Replaces the contents with a copy of the
         /// contents of other.
@@ -844,6 +1054,11 @@ namespace fefu_laboratory_two {
             const Deque<U, Alloc>& rhs);
 
         // operator <=> will be handy
+    private:
+        Node<T>* head = nullptr;
+        Node<T>* last = nullptr;
+        allocator_type allocator;
+        size_type count_elements;
     };
 
     /// NON-MEMBER FUNCTIONS
