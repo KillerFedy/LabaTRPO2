@@ -25,7 +25,7 @@ namespace fefu_laboratory_two {
 
         pointer allocate(size_type size)
         {
-            return static_cast<T*>(::operator new(size * sizeof(T));
+            return static_cast<pointer>(::operator new(size * sizeof(T));
         }
 
         void deallocate(pointer p, size_type n) noexcept
