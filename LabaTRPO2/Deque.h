@@ -763,7 +763,10 @@ namespace fefu_laboratory_two {
 
         /// @brief Returns the allocator associated with the container.
         /// @return The associated allocator.
-        allocator_type get_allocator() const noexcept;
+        allocator_type get_allocator() const noexcept
+        {
+            return alloc;
+        }
 
         /// ELEMENT ACCESS
 
@@ -881,11 +884,17 @@ namespace fefu_laboratory_two {
 
         /// @brief Checks if the container has no elements
         /// @return true if the container is empty, false otherwise
-        bool empty() const noexcept;
+        bool empty() const noexcept
+        {
+            return count_elements > 0;
+        }
 
         /// @brief Returns the number of elements in the container
         /// @return The number of elements in the container.
-        size_type size() const noexcept;
+        size_type size() const noexcept
+        {
+            return count_elements;
+        }
 
         /// @brief Returns the maximum number of elements the container is able to
         /// hold due to system or library implementation limitations
