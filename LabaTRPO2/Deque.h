@@ -62,9 +62,11 @@ namespace fefu_laboratory_two {
         Deque_iterator(const Deque_iterator& other) noexcept : point(other.point)
         { }
 
+        Deque_iterator(const Node<ValueType>* p) noexcept : point(p)
+        { }
+
         Deque_iterator& operator=(const Deque_iterator& other)
         {
-            delete this->point;
             this->point = other.point;
             return *this;
         }
@@ -294,15 +296,16 @@ namespace fefu_laboratory_two {
         Deque_const_iterator(const Deque_iterator<ValueType>& other) noexcept : point(other.point)
         { }
 
+        Deque_const_iterator(const Node<ValueType>* const p) noexcept : point(p)
+        { }
+
         Deque_const_iterator& operator=(const Deque_const_iterator& other)
         {
-            delete this->point;
             this->point = other.point;
             return *this;
         }
         Deque_const_iterator& operator=(const Deque_iterator<ValueType>& other)
         {
-            delete this->point;
             this->point = other.point;
             return *this;
         }
@@ -660,7 +663,7 @@ namespace fefu_laboratory_two {
         {
             for (int i = 0; i < static_cast<int>(count); i++)
             {
-                push_back(default(T));
+                push_back(T{});
             }
         }
 
@@ -670,20 +673,39 @@ namespace fefu_laboratory_two {
         /// @param first, last 	the range to copy the elements from
         /// @param alloc allocator to use for all memory allocations of this container
         template <class InputIt>
-        Deque(InputIt first, InputIt last, const Allocator& alloc = Allocator());
+        Deque(InputIt first, InputIt last, const Allocator& alloc = Allocator()) : allocator(alloc), count_elements(0)
+        {
+            for (auto it = first; it != last; it++)
+            {
+                push_back(*it);
+                count_elements++;
+            }
+        }
 
         /// @brief Copy constructor. Constructs the container with the copy of the
         /// contents of other.
         /// @param other another container to be used as source to initialize the
         /// elements of the container with
-        Deque(const Deque& other);
+        Deque(const Deque& other): count_elements(other.size())
+        {
+            for (auto it = other.begin; it != other.end() - 1; it++)
+            {
+                push_back(*it);
+            }
+        }
 
         /// @brief Constructs the container with the copy of the contents of other,
         /// using alloc as the allocator.
         /// @param other another container to be used as source to initialize the
         /// elements of the container with
         /// @param alloc allocator to use for all memory allocations of this container
-        Deque(const Deque& other, const Allocator& alloc);
+        Deque(const Deque& other, const Allocator& alloc) : count_elements(other.size()), allocator(alloc)
+        {
+            for (auto it = other.begin; it != other.end() - 1; it++)
+            {
+                this->push_back(*it);
+            }
+        }
 
         /**
          * @brief Move constructor.
@@ -695,7 +717,10 @@ namespace fefu_laboratory_two {
          * @param other another container to be used as source to initialize the
          * elements of the container with
          */
-        Deque(Deque&& other);
+        Deque(Deque&& other)
+        {
+            swap(other);
+        }
 
         /**
          * @brief Allocator-extended move constructor.
@@ -707,7 +732,10 @@ namespace fefu_laboratory_two {
          * elements of the container with
          * @param alloc allocator to use for all memory allocations of this container
          */
-        Deque(Deque&& other, const Allocator& alloc);
+        Deque(Deque&& other, const Allocator& alloc): allocator(alloc)
+        {
+            swap(other)
+        }
 
         /// @brief Constructs the container with the contents of the initializer list
         /// init.
@@ -717,13 +745,32 @@ namespace fefu_laboratory_two {
         Deque(std::initializer_list<T> init, const Allocator& alloc = Allocator());
 
         /// @brief Destructs the deque.
-        ~Deque() = default;
+        ~Deque()
+        {
+            Node<T>* firstNode = this->head;
+            if (firstNode == nullptr)
+            {
+                return;
+            }
+            Node<T>* secondNode = firstNode->next;
+            while (secondNode != nullptr)
+            {
+                delete firstNode;
+                firstNode = secondNode;
+                secondNode = secondNode->next;
+            }
+        }
 
         /// @brief Copy assignment operator. Replaces the contents with a copy of the
         /// contents of other.
         /// @param other another container to use as data source
         /// @return *this
-        Deque& operator=(const Deque& other);
+        Deque& operator=(const Deque& other)
+        {
+            Deque temp{ other };
+            std::swap(temp, *this);
+            return *this;
+        }
 
         /**
          * Move assignment operator.
@@ -735,7 +782,12 @@ namespace fefu_laboratory_two {
          * @param other another container to use as data source
          * @return *this
          */
-        Deque& operator=(Deque&& other);
+        Deque& operator=(Deque&& other)
+        {
+            Deque temp{std::move(other)};
+            std::swap(temp, *this);
+            return *this;
+        }
 
         /// @brief Replaces the contents with those identified by initializer list
         /// ilist.
@@ -746,7 +798,11 @@ namespace fefu_laboratory_two {
         /// @brief Replaces the contents with count copies of value
         /// @param count
         /// @param value
-        void assign(size_type count, const T& value);
+        void assign(size_type count, const T& value)
+        {
+            auto it = this->begin() + (count - 1);
+            *it = value;
+        }
 
         /// @brief Replaces the contents with copies of those in the range [first,
         /// last).
@@ -776,7 +832,11 @@ namespace fefu_laboratory_two {
         /// @param pos position of the element to return
         /// @return Reference to the requested element.
         /// @throw std::out_of_range
-        reference at(size_type pos);
+        reference at(size_type pos)
+        {
+            auto it = this->begin() + (pos - 1);
+            return *it;
+        }
 
         /// @brief Returns a const reference to the element at specified location pos,
         /// with bounds checking. If pos is not within the range of the container, an
@@ -801,7 +861,11 @@ namespace fefu_laboratory_two {
         /// @brief Returns a reference to the first element in the container.
         /// Calling front on an empty container is undefined.
         /// @return Reference to the first element
-        reference front();
+        reference front()
+        {
+            auto it = this->begin();
+            return *it;
+        }
 
         /// @brief Returns a const reference to the first element in the container.
         /// Calling front on an empty container is undefined.
@@ -811,7 +875,11 @@ namespace fefu_laboratory_two {
         /// @brief Returns a reference to the last element in the container.
         /// Calling back on an empty container causes undefined behavior.
         /// @return Reference to the last element.
-        reference back();
+        reference back()
+        {
+            auto it = this->end() - 1;
+            return *it;
+        }
 
         /// @brief Returns a const reference to the last element in the container.
         /// Calling back on an empty container causes undefined behavior.
@@ -823,12 +891,20 @@ namespace fefu_laboratory_two {
         /// @brief Returns an iterator to the first element of the deque.
         /// If the deque is empty, the returned iterator will be equal to end().
         /// @return Iterator to the first element.
-        iterator begin() noexcept;
+        iterator begin() noexcept
+        {
+            iterator b(head);
+            return b;
+        }
 
         /// @brief Returns an iterator to the first element of the deque.
         /// If the deque is empty, the returned iterator will be equal to end().
         /// @return Iterator to the first element.
-        const_iterator begin() const noexcept;
+        const_iterator begin() const noexcept
+        {
+            const_iterator b(head);
+            return b;
+        }
 
         /// @brief Same to begin()
         const_iterator cbegin() const noexcept;
@@ -837,13 +913,21 @@ namespace fefu_laboratory_two {
         /// the deque. This element acts as a placeholder; attempting to access it
         /// results in undefined behavior.
         /// @return Iterator to the element following the last element.
-        iterator end() noexcept;
+        iterator end() noexcept
+        {
+            iterator e(nullptr);
+            return e;
+        }
 
         /// @brief Returns an constant iterator to the element following the last
         /// element of the deque. This element acts as a placeholder; attempting to
         /// access it results in undefined behavior.
         /// @return Constant Iterator to the element following the last element.
-        const_iterator end() const noexcept;
+        const_iterator end() const noexcept
+        {
+            const_iterator e(nullptr);
+            return e;
+        }
 
         /// @brief Same to end()
         const_iterator cend() const noexcept;
@@ -912,7 +996,18 @@ namespace fefu_laboratory_two {
         /// @brief Erases all elements from the container.
         /// nvalidates any references, pointers, or iterators referring to contained
         /// elements. Any past-the-end iterators are also invalidated.
-        void clear() noexcept;
+        void clear() noexcept
+        {
+            for (auto it = this->begin() + 1; it != this->end() - 1; it++)
+            {
+                delete* (it - 1);
+                if (it == this->end() - 1)
+                {
+                    delete* it;
+                }
+            }
+            count_elements = 0;
+        }
 
         /// @brief Inserts value before pos.
         /// @param pos iterator before which the content will be inserted.
@@ -1024,7 +1119,12 @@ namespace fefu_laboratory_two {
         /// All iterators and references remain valid. The past-the-end iterator is
         /// invalidated.
         /// @param other container to exchange the contents with
-        void swap(Deque& other);
+        void swap(Deque& other)
+        {
+            std::swap(this->count_elements, other.count_elements);
+            std::swap(this->head, other.head);
+            std::swap(this->last, other.last);
+        }
 
         /// COMPARISIONS
 
@@ -1075,7 +1175,13 @@ namespace fefu_laboratory_two {
     /// @brief  Swaps the contents of lhs and rhs.
     /// @param lhs,rhs containers whose contents to swap
     template <class T, class Alloc>
-    void swap(Deque<T, Alloc>& lhs, Deque<T, Alloc>& rhs);
+    void swap(Deque<T, Alloc>& lhs, Deque<T, Alloc>& rhs)
+    {
+        std::swap(lhs->count_elements, lhs.count_elements);
+        std::swap(lhs->head, lhs.head);
+        std::swap(lhs->last, lhs.last);
+        std::swap(lhs.allocator, rhs.allocator);
+    }
 
     /// @brief Erases all elements that compare equal to value from the container.
     /// @param c container from which to erase
