@@ -19,13 +19,13 @@ namespace fefu_laboratory_two {
         Allocator(const Allocator& other) noexcept = default;
 
         template <class U>
-        Allocator(const Allocator<U>& other) noexcept = default;
+        Allocator(const Allocator<U>& other) noexcept;
 
         ~Allocator() = default;
 
         pointer allocate(size_type size)
         {
-            return static_cast<pointer>(::operator new(size * sizeof(T));
+            return static_cast<pointer>(::operator new(size * (sizeof(T) + 16))); 
         }
 
         void deallocate(pointer p, size_type n) noexcept
@@ -41,6 +41,7 @@ namespace fefu_laboratory_two {
     class Node
     {
     public:
+        Node(const ValueType& value_) : value(value_) { }
         Node* next;
         Node* prev;
         ValueType value;
@@ -734,7 +735,7 @@ namespace fefu_laboratory_two {
          */
         Deque(Deque&& other, const Allocator& alloc): allocator(alloc)
         {
-            swap(other)
+            swap(other);
         }
 
         /// @brief Constructs the container with the contents of the initializer list
@@ -821,7 +822,7 @@ namespace fefu_laboratory_two {
         /// @return The associated allocator.
         allocator_type get_allocator() const noexcept
         {
-            return alloc;
+            return this->allocator;
         }
 
         /// ELEMENT ACCESS
@@ -844,7 +845,11 @@ namespace fefu_laboratory_two {
         /// @param pos position of the element to return
         /// @return Const Reference to the requested element.
         /// @throw std::out_of_range
-        const_reference at(size_type pos) const;
+        const_reference at(size_type pos) const
+        {
+            auto it = this->begin() + (pos - 1);
+            return *it;
+        }
 
         /// @brief Returns a reference to the element at specified location pos. No
         /// bounds checking is performed.
@@ -1066,7 +1071,22 @@ namespace fefu_laboratory_two {
         /// @brief Appends the given element value to the end of the container.
         /// The new element is initialized as a copy of value.
         /// @param value the value of the element to append
-        void push_back(const T& value);
+        void push_back(const T& value)
+        {
+            Node<T>* node = this->allocator.allocate(1);
+            if (count_elements == 0)
+            {
+                head = node;
+                last = node;
+            }
+            else
+            {
+                node->prev = last;
+                last->next = node;
+                last = node;
+            }
+            count_elements++;
+        }
 
         /// @brief Appends the given element value to the end of the container.
         /// Value is moved into the new element.
@@ -1080,15 +1100,56 @@ namespace fefu_laboratory_two {
         reference emplace_back(Args&&... args);
 
         /// @brief Removes the last element of the container.
-        void pop_back();
+        void pop_back()
+        {
+            if (count_elements > 1)
+            {
+                last = last->prev;
+                delete last->next;
+                count_elements--;
+            }
+            else if (count_elements == 1)
+            {
+                delete last;
+                count_elements--;
+            }
+        }
 
         /// @brief Prepends the given element value to the beginning of the container.
         /// @param value the value of the element to prepend
-        void push_front(const T& value);
+        void push_front(const T& value)
+        {
+            Node<T>* node = this->allocator.allocate(1);
+            if (count_elements == 0)
+            {
+                head = node;
+                last = node;
+            }
+            else
+            {
+                node->next = head;
+                head->prev = node;
+                head = node;
+            }
+            count_elements++;
+        }
 
         /// @brief Prepends the given element value to the beginning of the container.
         /// @param value moved value of the element to prepend
-        void push_front(T&& value);
+        void push_front(T&& value)
+        {
+            if (count_elements > 1)
+            {
+                head = head->next;
+                delete head->prev;
+                count_elements--;
+            }
+            else if (count_elements == 1)
+            {
+                delete head;
+                count_elements--;
+            }
+        }
 
         /// @brief Inserts a new element to the beginning of the container.
         /// @param ...args arguments to forward to the constructor of the element
@@ -1097,7 +1158,20 @@ namespace fefu_laboratory_two {
         reference emplace_front(Args&&... args);
 
         /// @brief Removes the first element of the container.
-        void pop_front();
+        void pop_front()
+        {
+            if (count_elements > 1)
+            {
+                head = head->next;
+                delete head->prev;
+                count_elements--;
+            }
+            else if (count_elements == 1)
+            {
+                delete head;
+                count_elements--;
+            }
+        }
 
         /// @brief Resizes the container to contain count elements.
         /// If the current size is greater than count, the container is reduced to its
