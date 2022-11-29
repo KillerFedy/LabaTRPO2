@@ -316,7 +316,7 @@ namespace fefu_laboratory_two {
         friend void swap(Deque_const_iterator<ValueType>& a,
             Deque_const_iterator<ValueType>& b)
         {
-            Node<ValueType>* const point_a = a.point;
+            Node<ValueType>* point_a = a.point;
             a.point = b.point;
             b.point = point_a;
         }
@@ -845,7 +845,7 @@ namespace fefu_laboratory_two {
         /// @throw std::out_of_range
         reference at(size_type pos)
         {
-            auto it = this->begin() + (pos - 1);
+            reference it = this->begin() + (pos - 1);
             return *it;
         }
 
@@ -857,7 +857,7 @@ namespace fefu_laboratory_two {
         /// @throw std::out_of_range
         const_reference at(size_type pos) const
         {
-            auto it = this->begin() + (pos - 1);
+            const_reference it = this->begin() + (pos - 1);
             return *it;
         }
 
@@ -896,8 +896,8 @@ namespace fefu_laboratory_two {
         /// @return Reference to the last element.
         reference back()
         {
-            reference it = *(this->end());
-            return it;
+            reference b = this->last->value;
+            return b;
         }
 
         /// @brief Returns a const reference to the last element in the container.
@@ -905,8 +905,8 @@ namespace fefu_laboratory_two {
         /// @return Const Reference to the last element.
         const_reference back() const
         {
-            const_reference it = *(this->end());
-            return it;
+            const_reference b = this->last->value;
+            return b;
         }
 
         /// ITERATORS
@@ -930,7 +930,11 @@ namespace fefu_laboratory_two {
         }
 
         /// @brief Same to begin()
-        const_iterator cbegin() const noexcept;
+        const_iterator cbegin() const noexcept
+        {
+            const_iterator b(head);
+            return b;
+        }
 
         /// @brief Returns an iterator to the element following the last element of
         /// the deque. This element acts as a placeholder; attempting to access it
@@ -938,7 +942,7 @@ namespace fefu_laboratory_two {
         /// @return Iterator to the element following the last element.
         iterator end() noexcept
         {
-            iterator e(last);
+            iterator e(nullptr);
             return e;
         }
 
@@ -953,7 +957,11 @@ namespace fefu_laboratory_two {
         }
 
         /// @brief Same to end()
-        const_iterator cend() const noexcept;
+        const_iterator cend() const noexcept
+        {
+            const_iterator e(nullptr);
+            return e;
+        }
 
         /// @brief Returns a reverse iterator to the first element of the reversed
         /// deque. It corresponds to the last element of the non-reversed deque. If
@@ -1213,7 +1221,23 @@ namespace fefu_laboratory_two {
         /// first count elements. If the current size is less than count, additional
         /// default-inserted elements are appended
         /// @param count new size of the container
-        void resize(size_type count);
+        void resize(size_type count)
+        {
+            if (this->size() > count)
+            {
+                while (this->size() != count)
+                {
+                    this->pop_back;
+                }
+            }
+            else if(this->size < count)
+            {
+                while (this->size() != count)
+                {
+                    this->push_back(T{});
+                }
+            }
+        }
 
         /// @brief Resizes the container to contain count elements.
         /// If the current size is greater than count, the container is reduced to its
@@ -1221,7 +1245,23 @@ namespace fefu_laboratory_two {
         /// copies of value are appended.
         /// @param count new size of the container
         /// @param value the value to initialize the new elements with
-        void resize(size_type count, const value_type& value);
+        void resize(size_type count, const value_type& value)
+        {
+            if (this->size() > count)
+            {
+                while (this->size() != count)
+                {
+                    this->pop_back;
+                }
+            }
+            else if (this->size < count)
+            {
+                while (this->size() != count)
+                {
+                    this->push_back(value);
+                }
+            }
+        }
 
         /// @brief Exchanges the contents of the container with those of other.
         /// Does not invoke any move, copy, or swap operations on individual elements.
