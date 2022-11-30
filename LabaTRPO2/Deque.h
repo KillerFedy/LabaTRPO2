@@ -50,8 +50,9 @@ namespace fefu_laboratory_two {
 
     template <typename ValueType>
     class Deque_iterator {
-    public:
+    private:
         Node<ValueType>* point;
+    public:
         using iterator_category = std::random_access_iterator_tag;
         using value_type = ValueType;
         using difference_type = std::ptrdiff_t;
@@ -171,25 +172,7 @@ namespace fefu_laboratory_two {
 
         difference_type operator-(const Deque_iterator&) const;
 
-        reference operator[](const difference_type& t)
-        {
-            int a = static_cast<int>(t);
-            for (int i = 0; i < a; i++)
-            {
-                if (a > 0)
-                {
-                    this->point = point->next;
-                }
-                else
-                {
-                    this->point = point->prev;
-                }
-                if (this->point == nullptr)
-                {
-                    break;
-                }
-            }
-        }
+        reference operator[](const difference_type& t);
 
         friend bool operator<(const Deque_iterator<ValueType>& a,
             const Deque_iterator<ValueType>& b)
@@ -283,8 +266,9 @@ namespace fefu_laboratory_two {
     template <typename ValueType>
     class Deque_const_iterator {
         // Shouldn't give non const references on value
-    public:
+    private:
         Node<ValueType>* point;
+    public:
         using iterator_category = std::random_access_iterator_tag;
         using value_type = ValueType;
         using difference_type = std::ptrdiff_t;
@@ -339,7 +323,7 @@ namespace fefu_laboratory_two {
         }
         pointer operator->() const
         {
-            pointer constRef = static_cast<pointer>(&point->value);
+            pointer constRef = static_cast<pointer>(&(this->point->value));
             return constRef;
         }
 
@@ -409,45 +393,9 @@ namespace fefu_laboratory_two {
             return *this;
         }
 
-        difference_type operator-(const Deque_const_iterator& t) const
-        {
-            int a = static_cast<int>(t);
-            for (int i = 0; i < a; i++)
-            {
-                if (a > 0)
-                {
-                    this->point = point->next;
-                }
-                else
-                {
-                    this->point = point->prev;
-                }
-                if (this->point == nullptr)
-                {
-                    break;
-                }
-            }
-        }
+        difference_type operator-(const Deque_const_iterator& t) const;
 
-        reference operator[](const difference_type& t)
-        {
-            int a = static_cast<int>(t);
-            for (int i = 0; i < a; i++)
-            {
-                if (a > 0)
-                {
-                    this->point = point->next;
-                }
-                else
-                {
-                    this->point = point->prev;
-                }
-                if (this->point == nullptr)
-                {
-                    break;
-                }
-            }
-        }
+        reference operator[](const difference_type& t);
 
         friend bool operator<(const Deque_const_iterator<ValueType>& a,
             const Deque_const_iterator<ValueType>& b)
@@ -538,6 +486,8 @@ namespace fefu_laboratory_two {
 
     template <class Iter>
     class Deque_reverse_iterator {
+    private:
+        Node<Iter>* point;
     public:
         using iterator_type = Iter;
         using iterator_category =
@@ -547,59 +497,227 @@ namespace fefu_laboratory_two {
         using pointer = typename std::iterator_traits<Iter>::pointer;
         using reference = typename std::iterator_traits<Iter>::reference;
 
-        constexpr Deque_reverse_iterator();
+        constexpr Deque_reverse_iterator() = default;
 
-        constexpr explicit Deque_reverse_iterator(iterator_type x);
+        constexpr explicit Deque_reverse_iterator(iterator_type x)
+        {
+            this->point = new Node<iterator_type>(x);
+        }
+
+        constexpr explicit Deque_reverse_iterator(Node<Iter>* p) : point(p) { }
 
         template <class U>
-        constexpr Deque_reverse_iterator(const Deque_reverse_iterator<U>& other);
+        constexpr Deque_reverse_iterator(const Deque_reverse_iterator<U>& other) : point(other.point) { }
 
         template <class U>
-        Deque_reverse_iterator& operator=(const Deque_reverse_iterator<U>& other);
+        Deque_reverse_iterator& operator=(const Deque_reverse_iterator<U>& other)
+        {
+            this->point = other.point;
+        }
 
-        iterator_type base() const;
+        iterator_type base() const
+        {
+            return Iter;
+        }
 
-        reference operator*() const;
+        reference operator*() const
+        {
+            reference ref = *(this->point->value);
+            return ref;
+        }
 
-        pointer operator->() const;
+        pointer operator->() const
+        {
+            pointer p = static_cast<pointer>(&(this->point->value));
+            return p;
+        }
 
         reference operator[](difference_type n);
 
-        Deque_reverse_iterator& operator++();
-        Deque_reverse_iterator operator++(int);
+        Deque_reverse_iterator& operator++()
+        {
+            *this -= 1;
+            return *this;
+        }
+        Deque_reverse_iterator operator++(int)
+        {
+            *this -= 1;
+            return *this;
+        }
 
-        Deque_reverse_iterator& operator--();
-        Deque_reverse_iterator operator--(int);
+        Deque_reverse_iterator& operator--()
+        {
+            *this += 1;
+            return *this;
+        }
+        Deque_reverse_iterator operator--(int)
+        {
+            *this += 1;
+            return *this;
+        }
 
-        Deque_reverse_iterator operator+(difference_type n) const;
-        Deque_reverse_iterator& operator+=(difference_type n);
+        Deque_reverse_iterator operator+(difference_type n) const
+        {
+            Deque_reverse_iterator a(*this);
+            a -= n;
+            return a;
+        }
 
-        Deque_reverse_iterator operator-(difference_type n) const;
-        Deque_reverse_iterator& operator-=(difference_type n);
+        Deque_reverse_iterator& operator+=(difference_type n)
+        {
+            int i = 0;
+            int b = static_cast<int>(n);
+            while (i < b)
+            {
+                this->point = this->point->prev;
+                if (this->point == nullptr)
+                {
+                    break;
+                }
+                i++;
+            }
+            return *this;
+        }
+
+        Deque_reverse_iterator operator-(difference_type n) const
+        {
+            Deque_reverse_iterator a(*this);
+            a += n;
+            return a;
+        }
+        Deque_reverse_iterator& operator-=(difference_type n)
+        {
+            int i = 0;
+            int b = static_cast<int>(n);
+            while (i < b)
+            {
+                this->point = this->point->next;
+                if (this->point == nullptr)
+                {
+                    break;
+                }
+                i++;
+            }
+            return *this;
+        }
 
         template <class Iterator1, class Iterator2>
         friend bool operator==(const Deque_reverse_iterator<Iterator1>& lhs,
-            const Deque_reverse_iterator<Iterator2>& rhs);
+            const Deque_reverse_iterator<Iterator2>& rhs)
+        {
+            return lhs.point == rhs.point;
+        }
 
         template <class Iterator1, class Iterator2>
         friend bool operator!=(const Deque_reverse_iterator<Iterator1>& lhs,
-            const Deque_reverse_iterator<Iterator2>& rhs);
+            const Deque_reverse_iterator<Iterator2>& rhs)
+        {
+            return !(lhs == rhs);
+        }
 
         template <class Iterator1, class Iterator2>
         friend bool operator>(const Deque_reverse_iterator<Iterator1>& lhs,
-            const Deque_reverse_iterator<Iterator2>& rhs);
+            const Deque_reverse_iterator<Iterator2>& rhs)
+        {
+            Node<Iterator1> node = lhs.point;
+            if (node == rhs.point)
+            {
+                return false;
+            }
+            else
+            {
+                while (true)
+                {
+                    node = node.next;
+                    if (node == rhs.point)
+                    {
+                        return true;
+                    }
+                    else if(node == nullptr)
+                    {
+                        return false;
+                    }
+                }
+            }
+        }
 
         template <class Iterator1, class Iterator2>
         friend bool operator<(const Deque_reverse_iterator<Iterator1>& lhs,
-            const Deque_reverse_iterator<Iterator2>& rhs);
+            const Deque_reverse_iterator<Iterator2>& rhs)
+        {
+            Node<Iterator1> node = rhs.point;
+            if (node == lhs.point)
+            {
+                return false;
+            }
+            else
+            {
+                while (true)
+                {
+                    node = node.next;
+                    if (node == lhs.point)
+                    {
+                        return true;
+                    }
+                    else if (node == nullptr)
+                    {
+                        return false;
+                    }
+                }
+            }
+        }
 
         template <class Iterator1, class Iterator2>
         friend bool operator<=(const Deque_reverse_iterator<Iterator1>& lhs,
-            const Deque_reverse_iterator<Iterator2>& rhs);
+            const Deque_reverse_iterator<Iterator2>& rhs)
+        {
+            Node<Iterator1> node = rhs.point;
+            if (node == lhs.point)
+            {
+                return true;
+            }
+            else
+            {
+                while (true)
+                {
+                    node = node.next;
+                    if (node == lhs.point)
+                    {
+                        return true;
+                    }
+                    else if (node == nullptr)
+                    {
+                        return false;
+                    }
+                }
+            }
+        }
 
         template <class Iterator1, class Iterator2>
         friend bool operator>=(const Deque_reverse_iterator<Iterator1>& lhs,
-            const Deque_reverse_iterator<Iterator2>& rhs);
+            const Deque_reverse_iterator<Iterator2>& rhs)
+        {
+            Node<Iterator1> node = lhs.point;
+            if (node == rhs.point)
+            {
+                return true;
+            }
+            else
+            {
+                while (true)
+                {
+                    node = node.next;
+                    if (node == rhs.point)
+                    {
+                        return true;
+                    }
+                    else if (node == nullptr)
+                    {
+                        return false;
+                    }
+                }
+            }
+        }
 
         template <class IterT>
         friend Deque_reverse_iterator<IterT> operator+(
@@ -669,20 +787,6 @@ namespace fefu_laboratory_two {
             for (int i = 0; i < static_cast<int>(count); i++)
             {
                 this->push_back(T{});
-            }
-        }
-
-        /// @brief Constructs the container with the contents of the range [first,
-        /// last).
-        /// @tparam InputIt Input Iterator
-        /// @param first, last 	the range to copy the elements from
-        /// @param alloc allocator to use for all memory allocations of this container
-        template <class InputIt>
-        Deque(InputIt first, InputIt last, const Allocator& alloc = Allocator()) : allocator(alloc), count_elements(0)
-        {
-            for (auto it = first; it != last; it++)
-            {
-                this->push_back(*it);
             }
         }
 
@@ -845,8 +949,8 @@ namespace fefu_laboratory_two {
         /// @throw std::out_of_range
         reference at(size_type pos)
         {
-            reference it = this->begin() + (pos - 1);
-            return *it;
+            reference it = *(this->begin() + (pos - 1));
+            return it;
         }
 
         /// @brief Returns a const reference to the element at specified location pos,
@@ -857,8 +961,8 @@ namespace fefu_laboratory_two {
         /// @throw std::out_of_range
         const_reference at(size_type pos) const
         {
-            const_reference it = this->begin() + (pos - 1);
-            return *it;
+            const_reference it = *(this->begin() + (pos - 1));
+            return it;
         }
 
         /// @brief Returns a reference to the element at specified location pos. No
@@ -967,33 +1071,57 @@ namespace fefu_laboratory_two {
         /// deque. It corresponds to the last element of the non-reversed deque. If
         /// the deque is empty, the returned iterator is equal to rend().
         /// @return Reverse iterator to the first element.
-        reverse_iterator rbegin() noexcept;
+        reverse_iterator rbegin() noexcept
+        {
+            reverse_iterator b(last);
+            return b;
+        }
 
         /// @brief Returns a const reverse iterator to the first element of the
         /// reversed deque. It corresponds to the last element of the non-reversed
         /// deque. If the deque is empty, the returned iterator is equal to rend().
         /// @return Const Reverse iterator to the first element.
-        const_reverse_iterator rbegin() const noexcept;
+        const_reverse_iterator rbegin() const noexcept
+        {
+            const_reverse_iterator b(last);
+            return b;
+        }
 
         /// @brief Same to rbegin()
-        const_reverse_iterator crbegin() const noexcept;
+        const_reverse_iterator crbegin() const noexcept
+        {
+            const_reverse_iterator b(last);
+            return b;
+        }
 
         /// @brief Returns a reverse iterator to the element following the last
         /// element of the reversed deque. It corresponds to the element preceding the
         /// first element of the non-reversed deque. This element acts as a
         /// placeholder, attempting to access it results in undefined behavior.
         /// @return Reverse iterator to the element following the last element.
-        reverse_iterator rend() noexcept;
+        reverse_iterator rend() noexcept
+        {
+            reverse_iterator e(nullptr);
+            return e;
+        }
 
         /// @brief Returns a const reverse iterator to the element following the last
         /// element of the reversed deque. It corresponds to the element preceding the
         /// first element of the non-reversed deque. This element acts as a
         /// placeholder, attempting to access it results in undefined behavior.
         /// @return Const Reverse iterator to the element following the last element.
-        const_reverse_iterator rend() const noexcept;
+        const_reverse_iterator rend() const noexcept
+        {
+            const_reverse_iterator e(nullptr);
+            return e;
+        }
 
         /// @brief Same to rend()
-        const_reverse_iterator crend() const noexcept;
+        const_reverse_iterator crend() const noexcept
+        {
+            const_reverse_iterator e(nullptr);
+            return e;
+        }
 
         /// CAPACITY
 
@@ -1001,7 +1129,7 @@ namespace fefu_laboratory_two {
         /// @return true if the container is empty, false otherwise
         bool empty() const noexcept
         {
-            return count_elements > 0;
+            return count_elements == 0;
         }
 
         /// @brief Returns the number of elements in the container
@@ -1029,15 +1157,20 @@ namespace fefu_laboratory_two {
         /// elements. Any past-the-end iterators are also invalidated.
         void clear() noexcept
         {
-            for (auto it = this->begin() + 1; it != this->end(); it++)
+            Node<T>* node1 = head;
+            Node<T>* node2 = head->next;
+            while (node2 != nullptr)
             {
-                delete* (it - 1);
-                if (it == this->end() - 1)
-                {
-                    delete* it;
-                }
+                delete node1;
+                node1 = nullptr;
+                node1 = node2;
+                node2 = node2->next;
             }
+            delete node1;
+            node1 = nullptr;
             count_elements = 0;
+            head = nullptr;
+            last = nullptr;
         }
 
         /// @brief Inserts value before pos.
@@ -1145,13 +1278,16 @@ namespace fefu_laboratory_two {
         {
             if (count_elements > 1)
             {
+                Node<T>* node = last;
                 last = last->prev;
-                delete last->next;
+                last->next = nullptr;
+                delete node;
                 count_elements--;
             }
             else if (count_elements == 1)
             {
                 delete last;
+                last = nullptr;
                 count_elements--;
             }
         }
@@ -1207,11 +1343,13 @@ namespace fefu_laboratory_two {
             {
                 head = head->next;
                 delete head->prev;
+                head->prev = nullptr;
                 count_elements--;
             }
             else if (count_elements == 1)
             {
                 delete head;
+                head = nullptr;
                 count_elements--;
             }
         }
